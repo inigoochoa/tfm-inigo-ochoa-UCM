@@ -1,0 +1,48 @@
+# Datos
+data/raw/*
+data/processed/*
+data/external/*
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+!data/external/.gitkeep
+
+# Excepción puntual: salidas agregadas del modelo necesarias para que el
+# tutor reproduzca el notebook y la API sin acceso a Sharadar (ver
+# scripts/reproducir_tutor.sh). Nada de fundamentales en bruto ni paneles
+# fila a fila de empresas.
+!data/processed/panel_mensual_con_regimen.csv
+!data/processed/evaluacion_capa2_vs_baselines.csv
+!data/processed/evolucion_capital_100k.csv
+!data/processed/prediccion_vigente.json
+!data/processed/turnover_vigente.json
+
+# Credenciales
+.env
+
+# MLflow
+mlruns/
+
+# Entorno Python
+venv/
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+
+# Sistema
+.DS_Store
+
+# Modelos entrenados
+*.pkl
+*.joblib
+
+# Excepción puntual: modelos finales para reproducir el proyecto sin
+# Sharadar (ver scripts/reproducir_tutor.sh), no experimentos intermedios.
+!models/**
+
+# Build artifacts
+*.egg-info/
+__pycache__/
+*.pyc
+
+# macOS
+.DS_Store

@@ -1,0 +1,118 @@
+{
+  "fecha_calculo": "2026-08-31",
+  "rebalanceo_ejecutado": false,
+  "posiciones": [
+    {
+      "ticker": "WDC",
+      "peso_anterior": 0.011444575629002194,
+      "peso_nuevo": 0.011444575629002194,
+      "delta": 0.0,
+      "accion": "mantener"
+    },
+    {
+      "ticker": "MU",
+      "peso_anterior": 0.011444575629002194,
+      "peso_nuevo": 0.011444575629002194,
+      "delta": 0.0,
+      "accion": "mantener"
+    },
+    {
+      "ticker": "STX",
+      "peso_anterior": 0.011444575629002194,
+      "peso_nuevo": 0.011444575629002194,
+      "delta": 0.0,
+      "accion": "mantener"
+    },
+    {
+      "ticker": "WBD",
+      "peso_anterior": 0.011444575629002194,
+      "peso_nuevo": 0.011444575629002194,
+      "delta": 0.0,
+      "accion": "mantener"
+    },
+    {
+      "ticker": "NEM",
+      "peso_anterior": 0.011444575629002194,
+      "peso_nuevo": 0.011444575629002194,
+      "delta": 0.0,
+      "accion": "mantener"
+    },
+    {
+      "ticker": "HOOD",
+      "peso_anterior": 0.011444575629002194,
+      "peso_nuevo": 0.011444575629002194,
+      "delta": 0.0,
+      "accion": "mantener"
+    },
+    {
+      "ticker": "PLTR",
+      "peso_anterior": 0.011444575629002194,
+      "peso_nuevo": 0.011444575629002194,
+      "delta": 0.0,
+      "accion": "mantener"
+    },
+    {
+      "ticker": "FIX",
+      "peso_anterior": 0.011444575629002194,
+      "peso_nuevo": 0.011444575629002194,
+      "delta": 0.0,
+      "accion": "mantener"
+    },
+    {
+      "ticker": "LRCX",
+      "peso_anterior": 0.011444575629002194,
+      "peso_nuevo": 0.011444575629002194,
+      "delta": 0.0,
+      "accion": "mantener"
+    },
+    {
+      "ticker": "APH",
+      "peso_anterior": 0.011444575629002194,
+      "peso_nuevo": 0.011444575629002194,
+      "delta": 0.0,
+      "accion": "mantener"
+    },
+    {
+      "ticker": "DG",
+      "peso_anterior": 0.011444575629002194,
+      "peso_nuevo": 0.011444575629002194,
+      "delta": 0.0,
+      "accion": "mantener"
+    },
+    {
+      "ticker": "INTC",
+      "peso_anterior": 0.011444575629002194,
+      "peso_nuevo": 0.011444575629002194,
+      "delta": 0.0,
+      "accion": "mantener"
+    },
+    {
+      "ticker": "AMD",
+      "peso_anterior": 0.011444575629002194,
+      "peso_nuevo": 0.011444575629002194,
+      "delta": 0.0,
+      "accion": "mantener"
+    },
+    {
+      "ticker": "APP",
+      "peso_anterior": 0.011444575629002194,
+      "peso_nuevo": 0.011444575629002194,
+      "delta": 0.0,
+      "accion": "mantener"
+    },
+    {
+      "ticker": "TPR",
+      "peso_anterior": 0.011444575629002194,
+      "peso_nuevo": 0.011444575629002194,
+      "delta": 0.0,
+      "accion": "mantener"
+    },
+    {
+      "ticker": "SPY",
+      "peso_anterior": 0.8283313655649671,
+      "peso_nuevo": 0.8283313655649671,
+      "delta": 0.0,
+      "accion": "mantener"
+    }
+  ]
+}

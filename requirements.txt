@@ -1,0 +1,30 @@
+# --- Datos ---
+pandas>=2.0
+numpy>=1.26
+fredapi>=0.5
+yfinance>=0.2             # Precios S&P500 y VIX
+requests>=2.31            # Descargas directas (AAII, AQR, SEC EDGAR, Finnhub)
+openpyxl>=3.1             # Lectura de ficheros .xls/.xlsx (AAII, AQR)
+python-dotenv>=1.0        # Carga de variables de entorno desde .env
+
+# --- Modelado ---
+scikit-learn>=1.4         # k-means, Random Forest
+shap>=0.45                # Interpretabilidad del Random Forest
+hmmlearn>=0.3              # HMM como benchmark comparativo
+
+# --- Tracking de experimentos ---
+mlflow>=2.12
+
+# --- Productivización ---
+fastapi>=0.110
+uvicorn[standard]>=0.29
+
+# --- Visualización (exploración, no el dashboard final) ---
+matplotlib>=3.8
+seaborn>=0.13
+
+# --- Notebook de recorrido (Anexo) ---
+jupyter>=1.0
+nbconvert>=7.16
+ipykernel>=6.29
+scikit-learn==1.9.0
