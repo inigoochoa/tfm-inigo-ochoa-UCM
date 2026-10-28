@@ -11,6 +11,50 @@ Fama-French (+ Momentum + BAB) serán más rentables a distintos horizontes (cor
 medio, largo plazo), y traducir esas predicciones en una cartera de renta variable
 _long-only_ sobre el S&P500.
 
+## Resultados principales
+
+![Regímenes de mercado detectados sobre el S&P 500 (1995-2026)](reports/figuras/figura_1_regimenes_mercado.png)
+
+Solo Momentum a 12 meses muestra precisión direccional estadísticamente
+significativa (R² = 0,174, precisión direccional = 70,8 %, p = 0,0011
+binomial) sobre el conjunto de test fuera de muestra (observaciones
+posteriores a 2019-12-31, no usadas en el entrenamiento). Esta cifra sale de
+una única partición train/test cronológica
+(`src/factor_prediction/evaluacion_baseline.py`), no de una validación
+walk-forward de múltiples folds: el walk-forward
+(`src/backtesting/walk_forward_capa2.py`) se usa para generar las
+predicciones de Momentum que alimentan la cartera, no para recalcular esta
+métrica de significancia. El resto de combinaciones factor/horizonte (21 en
+total: 7 factores × 3 horizontes) no supera de forma significativa a los
+benchmarks (predicción constante en cero y predicción constante igual a la
+media histórica de entrenamiento). El régimen de mercado, aunque válido como
+clasificador independiente en la Capa 1, no aporta señal incremental en la
+Capa 2.
+
+![Evolución del capital: cartera core-satélite vs. S&P 500 (2014-2026)](reports/figuras/figura_4_evolucion_capital.png)
+
+Cartera final (histórico hasta agosto 2026, con costes de 5 pb) vs. SPY:
+
+| Métrica                   | Cartera  | SPY (benchmark) |
+| ------------------------- | -------- | --------------- |
+| Retorno anualizado (CAGR) | ~15,2 %  | ~14,2 %         |
+| Sharpe                    | ~1,003   | ~0,991          |
+| Calmar                    | ~0,661   | ~0,593          |
+| Máximo drawdown           | ~-23,0 % | ~-23,9 %        |
+
+La ventaja en capital frente a SPY es pequeña y se invierte algunos años
+entre 2014 y 2019 (ratio cartera/SPY entre 0,99 y 1,01), y se acumula sobre
+todo desde 2020-2021 en adelante (ratio de cierre de año: 1,04 en 2020, 1,05
+en 2021, 1,07 en 2022, hasta 1,12 en agosto de 2026).
+
+La ventaja se mantiene en los cinco escenarios de coste evaluados (0, 5, 10,
+20 y 50 pb por operación): el Sharpe de la cartera se mueve aproximadamente
+entre 0,997 (50 pb) y 1,004 (0 pb) — lectura del gráfico
+`figura_5_sensibilidad_costes.png`, ya que `sensibilidad_costes_transaccion.csv`
+no está versionado en el repo y no se puede recalcular sin el histórico de
+turnover — y en todos los escenarios sigue por encima del de SPY puro
+(0,991).
+
 ## Arquitectura del pipeline
 
 ```
@@ -61,12 +105,18 @@ ampliarla en el futuro sin refactorizar el resto del pipeline.
 
 ## Rango temporal
 
-El rango efectivo del análisis es 1990–2026 para las variables macro y de
-mercado de la Capa 1, y 1998–2026 para las señales cross-sectional y el panel
-de entrenamiento de la Capa 2, acotado por la cobertura real de la tabla de
-constituyentes históricos del S&P500 de Sharadar. Las series de frecuencia
-semanal (solicitudes de subsidio de desempleo y encuesta AAII) se agregan a
-mensual antes de integrarse en el panel.
+La descarga de variables macro y de mercado para la Capa 1 arranca en 1990
+(`FECHA_INICIO` en `config/series.py`), pero el panel efectivo que alimenta el
+clustering de régimen solo tiene datos completos desde finales de 1994 /
+1995, porque varias features usan una ventana móvil de 60 meses (z-scores) que
+consume los primeros 5 años como calentamiento; de ahí que la figura de
+regímenes esté titulada "1995-2026". Para las señales cross-sectional y el
+panel de entrenamiento de la Capa 2 el rango efectivo sí es 1998–2026
+(`FECHA_INICIO_CAPA2 = "1998-03-31"` en `src/features/panel_maestro_capa2.py`),
+acotado por la cobertura real de la tabla de constituyentes históricos del
+S&P500 de Sharadar. Las series de frecuencia semanal (solicitudes de subsidio
+de desempleo y encuesta AAII) se agregan a mensual antes de integrarse en el
+panel.
 
 ## Estructura del repositorio
 
@@ -91,12 +141,13 @@ src/
   portfolio/        Construcción de cartera, pesos, evolución de capital,
                     sensibilidad a costes
 api/                API FastAPI (predicción/tilt y cartera de acciones)
-scripts/            reproducir_tutor.sh (Opción B) y utilidades de
+scripts/            reproducir.sh (Opción B) y utilidades de
                     entrenamiento/exportación de modelos
 viz_exports/        PNGs de apoyo
-notebooks/          Notebook de recorrido que reproduce las 5 figuras
-                    principales del TFM a partir de los artefactos ya
-                    calculados por src/ (no reimplementa el pipeline)
+notebooks/          Notebook de recorrido que reproduce 4 de las 5 figuras
+                    principales del TFM (todas salvo la de sensibilidad a
+                    costes) a partir de los artefactos ya calculados por
+                    src/ (no reimplementa el pipeline)
 reports/
   figuras/          Gráficos finales de la memoria (regímenes, SHAP,
                     R²/acierto por factor, evolución de capital,
@@ -191,36 +242,15 @@ usando los modelos ya entrenados (`models/`) y las salidas ya calculadas
 `FRED_API_KEY`.
 
 ```bash
-bash scripts/reproducir_tutor.sh
+bash scripts/reproducir.sh
 ```
 
 El script comprueba que están los ficheros necesarios, instala dependencias,
 carga los 4 modelos ya entrenados, levanta la API sirviendo desde caché,
-valida los endpoints `GET`, y ejecuta el notebook de recorrido regenerando
-las 5 figuras, sin acceder a Sharadar en ningún paso.
-
-## Resultados principales
-
-Solo Momentum a 12 meses muestra precisión direccional estadísticamente
-significativa (R² = 0,174, precisión direccional = 70,8 %, p = 0,0011
-binomial). El resto de combinaciones factor/horizonte no supera de forma
-significativa a los benchmarks (predicción constante en cero y
-predicción constante igual a la media histórica de entrenamiento). El
-régimen de mercado, aunque válido como clasificador independiente en la
-Capa 1, no aporta señal incremental en la Capa 2.
-
-Cartera final (histórico hasta agosto 2026, con costes de 5 pb) vs. SPY:
-
-| Métrica                   | Cartera  | SPY (benchmark) |
-| ------------------------- | -------- | --------------- |
-| Retorno anualizado (CAGR) | ~15,2 %  | ~14,2 %         |
-| Sharpe                    | ~1,003   | ~0,991          |
-| Calmar                    | ~0,661   | ~0,593          |
-| Máximo drawdown           | ~-23,0 % | ~-23,9 %        |
-
-La ventaja se mantiene en los cinco escenarios de coste evaluados (0, 5, 10,
-20 y 50 pb por operación): incluso en el escenario más pesimista (50 pb), el
-Sharpe de la cartera (0,998) sigue por encima del de SPY puro (0,991).
+valida los endpoints `GET`, y ejecuta el notebook de recorrido regenerando 4
+de las 5 figuras principales (todas salvo la de sensibilidad a costes, que
+requiere el histórico de turnover no versionado en el repo), sin acceder a
+Sharadar en ningún paso.
 
 ## Bibliografía principal
 
