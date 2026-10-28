@@ -8,7 +8,7 @@ data/external/*
 
 # Excepción puntual: salidas agregadas del modelo necesarias para que el
 # tutor reproduzca el notebook y la API sin acceso a Sharadar (ver
-# scripts/reproducir_tutor.sh). Nada de fundamentales en bruto ni paneles
+# scripts/reproducir.sh). Nada de fundamentales en bruto ni paneles
 # fila a fila de empresas.
 !data/processed/panel_mensual_con_regimen.csv
 !data/processed/evaluacion_capa2_vs_baselines.csv
@@ -36,7 +36,7 @@ __pycache__/
 *.joblib
 
 # Excepción puntual: modelos finales para reproducir el proyecto sin
-# Sharadar (ver scripts/reproducir_tutor.sh), no experimentos intermedios.
+# Sharadar (ver scripts/reproducir.sh), no experimentos intermedios.
 !models/**
 
 # Build artifacts
