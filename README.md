@@ -1,6 +1,4 @@
-![Market regimes](assets/tfm-banner-en.png)
-
-🇪🇸 [Versión en español](README.es.md)
+![Market regimes](assets/tfm-banner.png)
 
 # Market regime detection with machine learning for tactical asset allocation
 
