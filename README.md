@@ -1,170 +1,173 @@
-# Detección de regímenes de mercado con machine learning aplicada al asset allocation táctico
+![Market regimes](assets/tfm-banner-en.png)
 
-TFM — Máster en Data Science, Big Data & Business Analytics - Universidad Complutense de Madrid
+🇪🇸 [Versión en español](README.es.md)
+
+# Market regime detection with machine learning for tactical asset allocation
+
+Master's thesis — Master's in Data Science, Big Data & Business Analytics - Universidad Complutense de Madrid
 Íñigo Ochoa Gil
 
-## Objetivo
+> Module, function and variable names in the code are in Spanish, and so are the labels in the figures.
 
-Detectar el régimen macro-financiero vigente mediante clustering no supervisado, usarlo junto
-con señales cross-sectional como input para predecir qué factores de
-Fama-French (+ Momentum + BAB) serán más rentables a distintos horizontes (corto,
-medio, largo plazo), y traducir esas predicciones en una cartera de renta variable
-_long-only_ sobre el S&P500.
+## Objective
 
-## Resultados principales
+Detect the prevailing macro-financial regime through unsupervised clustering, use it together
+with cross-sectional signals as input to predict which Fama-French factors
+(+ Momentum + BAB) will perform best at different horizons (short,
+medium and long term), and translate those predictions into a _long-only_
+equity portfolio on the S&P 500.
 
-![Regímenes de mercado detectados sobre el S&P 500 (1995-2026)](reports/figuras/figura_1_regimenes_mercado.png)
+## Main results
 
-Solo Momentum a 12 meses muestra precisión direccional estadísticamente
-significativa (R² = 0,174, precisión direccional = 70,8 %, p = 0,0011
-binomial) sobre el conjunto de test fuera de muestra (observaciones
-posteriores a 2019-12-31, no usadas en el entrenamiento). Esta cifra sale de
-una única partición train/test cronológica
-(`src/factor_prediction/evaluacion_baseline.py`), no de una validación
-walk-forward de múltiples folds: el walk-forward
-(`src/backtesting/walk_forward_capa2.py`) se usa para generar las
-predicciones de Momentum que alimentan la cartera, no para recalcular esta
-métrica de significancia. El resto de combinaciones factor/horizonte (21 en
-total: 7 factores × 3 horizontes) no supera de forma significativa a los
-benchmarks (predicción constante en cero y predicción constante igual a la
-media histórica de entrenamiento). El régimen de mercado, aunque válido como
-clasificador independiente en la Capa 1, no aporta señal incremental en la
-Capa 2.
+![Market regimes detected on the S&P 500 (1995-2026)](reports/figuras/figura_1_regimenes_mercado.png)
 
-![Evolución del capital: cartera core-satélite vs. S&P 500 (2014-2026)](reports/figuras/figura_4_evolucion_capital.png)
+Only 12-month Momentum shows statistically significant directional accuracy
+(R² = 0.174, directional accuracy = 70.8%, p = 0.0011, binomial test) on the
+out-of-sample test set (observations after 2019-12-31, not used in training).
+This figure comes from a single chronological train/test split
+(`src/factor_prediction/evaluacion_baseline.py`), not from a multi-fold
+walk-forward validation: the walk-forward
+(`src/backtesting/walk_forward_capa2.py`) is used to generate the Momentum
+predictions that feed the portfolio, not to recompute this significance
+metric. The remaining factor/horizon combinations (21 in total:
+7 factors × 3 horizons) do not significantly beat the benchmarks (constant
+zero prediction and constant prediction equal to the training-set historical
+mean). The market regime, although valid as a standalone classifier in
+Layer 1, adds no incremental signal in Layer 2.
 
-Cartera final (histórico hasta agosto 2026, con costes de 5 pb) vs. SPY:
+![Capital evolution: core-satellite portfolio vs. S&P 500 (2014-2026)](reports/figuras/figura_4_evolucion_capital.png)
 
-| Métrica                   | Cartera  | SPY (benchmark) |
-| ------------------------- | -------- | --------------- |
-| Retorno anualizado (CAGR) | ~15,2 %  | ~14,2 %         |
-| Sharpe                    | ~1,003   | ~0,991          |
-| Calmar                    | ~0,661   | ~0,593          |
-| Máximo drawdown           | ~-23,0 % | ~-23,9 %        |
+Final portfolio (history up to August 2026, with 5 bp transaction costs) vs. SPY:
 
-La ventaja en capital frente a SPY es pequeña y se invierte algunos años
-entre 2014 y 2019 (ratio cartera/SPY entre 0,99 y 1,01), y se acumula sobre
-todo desde 2020-2021 en adelante (ratio de cierre de año: 1,04 en 2020, 1,05
-en 2021, 1,07 en 2022, hasta 1,12 en agosto de 2026).
+| Metric                       | Portfolio | SPY (benchmark) |
+| ---------------------------- | --------- | --------------- |
+| Annualised return (CAGR)     | ~15.2%    | ~14.2%          |
+| Sharpe                       | ~1.003    | ~0.991          |
+| Calmar                       | ~0.661    | ~0.593          |
+| Maximum drawdown             | ~-23.0%   | ~-23.9%         |
 
-La ventaja se mantiene en los cinco escenarios de coste evaluados (0, 5, 10,
-20 y 50 pb por operación): el Sharpe de la cartera se mueve aproximadamente
-entre 0,997 (50 pb) y 1,004 (0 pb) — lectura del gráfico
-`figura_5_sensibilidad_costes.png`, ya que `sensibilidad_costes_transaccion.csv`
-no está versionado en el repo y no se puede recalcular sin el histórico de
-turnover — y en todos los escenarios sigue por encima del de SPY puro
-(0,991).
+The capital advantage over SPY is small and reverses in some years between
+2014 and 2019 (portfolio/SPY ratio between 0.99 and 1.01); it builds up
+mainly from 2020-2021 onwards (year-end ratio: 1.04 in 2020, 1.05 in 2021,
+1.07 in 2022, up to 1.12 in August 2026).
 
-## Arquitectura del pipeline
+The advantage holds in all five cost scenarios tested (0, 5, 10, 20 and
+50 bp per trade): the portfolio's Sharpe ranges roughly from 0.997 (50 bp)
+to 1.004 (0 bp) — read from the chart
+`figura_5_sensibilidad_costes.png`, since `sensibilidad_costes_transaccion.csv`
+is not versioned in the repo and cannot be recomputed without the turnover
+history — and in every scenario it stays above that of plain SPY (0.991).
+
+## Pipeline architecture
 
 ```
-Datos (Yahoo Finance, FRED, Kenneth French, AQR, AAII, Sharadar)
+Data (Yahoo Finance, FRED, Kenneth French, AQR, AAII, Sharadar)
         │
         ▼
-Capa 1 — Detección de régimen
-  clustering (k-means, k=4) sobre 19 variables macro/mercado → etiquetas de
-                                régimen históricas (Expansión, Expansión
-                                tardía/Endurecimiento, Crisis aguda, Recuperación)
-  Random Forest + SHAP       → clasifica el régimen de un mes nuevo y lo explica
+Layer 1 — Regime detection
+  clustering (k-means, k=4) on 19 macro/market variables → historical regime
+                                labels (Expansion, Late expansion/Tightening,
+                                Acute crisis, Recovery)
+  Random Forest + SHAP       → classifies the regime of a new month and explains it
 
         │
         ▼
-Capa 2 — Predicción de factores (Random Forest, uno por horizonte)
-  Input:  variables macro + señales cross-sectional
+Layer 2 — Factor prediction (Random Forest, one per horizon)
+  Input:  macro variables + cross-sectional signals
           (relative strength, valuation composite, dispersion, value spread)
 
-  Output: retorno esperado de los 7 factores en 3 horizontes (~1, ~3, ~12 meses)
+  Output: expected return of the 7 factors at 3 horizons (~1, ~3, ~12 months)
         │
         ▼
-Construcción de cartera (core-satellite: SPY pasivo + satélite top-15 por Momentum)
+Portfolio construction (core-satellite: passive SPY + top-15 Momentum satellite)
         │
         ▼
 Backtesting (walk-forward / expanding window)
-  Sharpe ratio · Máximo drawdown · Calmar ratio
+  Sharpe ratio · Maximum drawdown · Calmar ratio
         │
-        ├──► Batch mensual
+        ├──► Monthly batch
         └──► API (FastAPI)
-              GET /health               → estado del servicio
-              GET /prediccion-factores → sirve la predicción/tilt vigente (con caché)
-              POST /recalcular-factores → fuerza recálculo, protegido con X-API-Key
-              GET /cartera-acciones    → sirve el turnover de acciones vigente (con caché)
-              POST /recalcular-cartera → fuerza recálculo, protegido con X-API-Key
+              GET /health               → service status
+              GET /prediccion-factores → serves the current prediction/tilt (cached)
+              POST /recalcular-factores → forces recalculation, protected with X-API-Key
+              GET /cartera-acciones    → serves the current stock turnover (cached)
+              POST /recalcular-cartera → forces recalculation, protected with X-API-Key
 ```
 
-## Factores objetivo
+## Target factors
 
-7 factores:
+7 factors:
 Fama-French 5 (Mkt-RF, SMB, HML, RMW, CMA) + Momentum (Kenneth French Data
 Library) + BAB, Betting Against Beta (AQR Data Library)
 
-## Universo de acciones y alcance
+## Stock universe and scope
 
-S&P500, sobre sus constituyentes _point-in-time_ (evitando sesgo de supervivencia). La
-selección de universo está aislada en un único punto del código para poder
-ampliarla en el futuro sin refactorizar el resto del pipeline.
+S&P 500, using its _point-in-time_ constituents (avoiding survivorship bias). Universe
+selection is isolated in a single place in the code so it can be extended
+in the future without refactoring the rest of the pipeline.
 
-## Rango temporal
+## Time range
 
-La descarga de variables macro y de mercado para la Capa 1 arranca en 1990
-(`FECHA_INICIO` en `config/series.py`), pero el panel efectivo que alimenta el
-clustering de régimen solo tiene datos completos desde finales de 1994 /
-1995, porque varias features usan una ventana móvil de 60 meses (z-scores) que
-consume los primeros 5 años como calentamiento; de ahí que la figura de
-regímenes esté titulada "1995-2026". Para las señales cross-sectional y el
-panel de entrenamiento de la Capa 2 el rango efectivo sí es 1998–2026
-(`FECHA_INICIO_CAPA2 = "1998-03-31"` en `src/features/panel_maestro_capa2.py`),
-acotado por la cobertura real de la tabla de constituyentes históricos del
-S&P500 de Sharadar. Las series de frecuencia semanal (solicitudes de subsidio
-de desempleo y encuesta AAII) se agregan a mensual antes de integrarse en el
-panel.
+The download of macro and market variables for Layer 1 starts in 1990
+(`FECHA_INICIO` in `config/series.py`), but the effective panel that feeds
+the regime clustering only has complete data from late 1994 / 1995, because
+several features use a 60-month rolling window (z-scores) that consumes the
+first 5 years as warm-up; hence the regime figure is titled "1995-2026".
+For the cross-sectional signals and the Layer 2 training panel the effective
+range is 1998–2026
+(`FECHA_INICIO_CAPA2 = "1998-03-31"` in `src/features/panel_maestro_capa2.py`),
+bounded by the actual coverage of Sharadar's historical S&P 500 constituents
+table. Weekly series (initial jobless claims and the AAII survey) are
+aggregated to monthly before being merged into the panel.
 
-## Estructura del repositorio
+## Repository structure
 
 ```
-README.md
+README.md           English version
+README.es.md        Spanish version
 pyproject.toml
 requirements.txt
 .env / .env.example
 
-config/             Mapeo de series de datos y rutas de datos
-data/               raw / processed / external (no versionados en git salvo
-                    5 salidas agregadas necesarias para la Opción B, ver abajo)
-models/             Modelos ya entrenados (régimen Capa 1 + 3 RF de Capa 2 por
-                    horizonte), para reproducir sin necesidad de Sharadar
+config/             Data series mapping and data paths
+data/               raw / processed / external (not versioned in git except
+                    5 aggregated outputs required for Option B, see below)
+models/             Pre-trained models (Layer 1 regime + 3 Layer 2 RFs, one per
+                    horizon), to reproduce without Sharadar
 src/
-  data_ingestion/   Descarga de mercado, macro, factores y fundamentales
-  features/         Construcción de features de régimen y cross-sectional
-  preprocessing/     Alineación de series
-  regime/           Clustering (k-means) y clasificador RF+SHAP
-  factor_prediction/  Target de retornos futuros y modelos por horizonte
-  backtesting/      Walk-forward / expanding window (Capa 2)
-  portfolio/        Construcción de cartera, pesos, evolución de capital,
-                    sensibilidad a costes
-api/                API FastAPI (predicción/tilt y cartera de acciones)
-scripts/            reproducir.sh (Opción B) y utilidades de
-                    entrenamiento/exportación de modelos
-viz_exports/        PNGs de apoyo
-notebooks/          Notebook de recorrido que reproduce 4 de las 5 figuras
-                    principales del TFM (todas salvo la de sensibilidad a
-                    costes) a partir de los artefactos ya calculados por
-                    src/ (no reimplementa el pipeline)
+  data_ingestion/   Download of market, macro, factor and fundamental data
+  features/         Construction of regime and cross-sectional features
+  preprocessing/    Series alignment
+  regime/           Clustering (k-means) and RF+SHAP classifier
+  factor_prediction/  Forward-return target and per-horizon models
+  backtesting/      Walk-forward / expanding window (Layer 2)
+  portfolio/        Portfolio construction, weights, capital evolution,
+                    cost sensitivity
+api/                FastAPI API (prediction/tilt and stock portfolio)
+scripts/            reproducir.sh (Option B) and model
+                    training/export utilities
+viz_exports/        Supporting PNGs
+notebooks/          Walkthrough notebook that reproduces 4 of the 5 main
+                    figures of the thesis (all except cost sensitivity) from
+                    the artefacts already computed by src/ (it does not
+                    reimplement the pipeline)
 reports/
-  figuras/          Gráficos finales de la memoria (regímenes, SHAP,
-                    R²/acierto por factor, evolución de capital,
-                    sensibilidad a costes) + gráficos del EDA
+  figuras/          Final thesis charts (regimes, SHAP,
+                    R²/accuracy by factor, capital evolution,
+                    cost sensitivity) + EDA charts
 ```
 
-## Fuentes de datos por fase
+## Data sources by phase
 
-| Fase                        | Fundamentales                                                          | Precios       | Macro / Factores                |
-| --------------------------- | ---------------------------------------------------------------------- | ------------- | ------------------------------- |
-| Entrenamiento / backtesting | Sharadar (point-in-time)                                               | Yahoo Finance | FRED, Kenneth French, AQR, AAII |
-| Producción (tras entrega)   | SEC EDGAR (obligatorio, sin registro) + Finnhub (opcional, validación) | Yahoo Finance | FRED, Kenneth French, AQR, AAII |
+| Phase                  | Fundamentals                                                         | Prices        | Macro / Factors                 |
+| ---------------------- | -------------------------------------------------------------------- | ------------- | ------------------------------- |
+| Training / backtesting | Sharadar (point-in-time)                                             | Yahoo Finance | FRED, Kenneth French, AQR, AAII |
+| Production (post-thesis) | SEC EDGAR (required, no sign-up) + Finnhub (optional, validation) | Yahoo Finance | FRED, Kenneth French, AQR, AAII |
 
-Sharadar se usa solo para construir el dataset histórico de entrenamiento —
-el modelo entrenado no depende de la suscripción una vez completada esa fase.
+Sharadar is only used to build the historical training dataset —
+the trained model does not depend on the subscription once that phase is complete.
 
-## Cómo ejecutar
+## How to run
 
 ```bash
 conda create -n tfm-regimen python=3.11 -y
@@ -172,21 +175,21 @@ conda activate tfm-regimen
 pip install -e .
 pip install -r requirements.txt
 
-cp .env.example .env                # Rellenar FRED_API_KEY (obligatoria para
-                                    # la Opción A), TFM_API_KEY (protege los
-                                    # POST de la API) y, si se usa, FINNHUB_API_KEY
+cp .env.example .env                # Fill in FRED_API_KEY (required for
+                                    # Option A), TFM_API_KEY (protects the
+                                    # API's POST endpoints) and, if used, FINNHUB_API_KEY
 ```
 
-### Opción A — Réplica completa (requiere suscripción a Sharadar)
+### Option A — Full replication (requires a Sharadar subscription)
 
-Regenera los datos y reentrena los modelos desde cero. Además de lo anterior,
-rellena `SHARADAR_API_KEY` en el `.env` — sin ella, este bloque falla.
+Regenerates the data and retrains the models from scratch. In addition to the above,
+fill in `SHARADAR_API_KEY` in `.env` — without it, this block fails.
 
 ```bash
-# Tracking de experimentos (opcional, abre panel local)
+# Experiment tracking (optional, opens a local dashboard)
 mlflow ui
 
-# 1. Ingesta de datos crudos (-> data/raw/)
+# 1. Raw data ingestion (-> data/raw/)
 python -m src.data_ingestion.fred_loader
 python -m src.data_ingestion.loaders                # AQR BAB + Kenneth French + AAII
 
@@ -197,62 +200,62 @@ python -c "from data_ingestion.sharadar_loader import guardar_precios_delistados
 python -c "from data_ingestion.yahoo_loader import descargar_todas_series_yahoo; descargar_todas_series_yahoo()"
 python -c "from data_ingestion.yahoo_loader import guardar_precios_individuales_yahoo; guardar_precios_individuales_yahoo()"
 
-# 2. Preprocesamiento y Capa 1 (régimen) (-> data/processed/)
+# 2. Preprocessing and Layer 1 (regime) (-> data/processed/)
 python -m src.preprocessing.alineacion
 python -m src.features.macro
 python -m src.features.cross_sectional
 python -m src.regime.kmeans_regimen
 python -m src.regime.regimen_sin_leakage
 
-# 3. Features de Capa 2
+# 3. Layer 2 features
 python -m src.features.fundamentales_pit
 python -m src.features.precios_pit
 python -m src.features.pipeline_senales_capa2
 python -m src.features.panel_maestro_capa2
 
-# 4. Target y entrenamiento de Capa 2 (requiere mlflow ui activo o tracking configurado)
+# 4. Layer 2 target and training (requires mlflow ui running or tracking configured)
 python -m src.factor_prediction.target
-python -m src.factor_prediction.entrenamiento       # registra rf_corto_final / rf_medio_final / rf_largo_final en MLflow
+python -m src.factor_prediction.entrenamiento       # registers rf_corto_final / rf_medio_final / rf_largo_final in MLflow
 
-# 5. Backtesting y cartera
+# 5. Backtesting and portfolio
 python -m src.backtesting.walk_forward_capa2
 python -m src.portfolio.pesos_cartera
 python -m src.portfolio.ejecutar_cartera_acciones --modo walk_forward
 python -m src.portfolio.extender_historico_reciente
 
-# Levantar la API
+# Start the API
 uvicorn api.main:app --reload
-# Documentación interactiva en http://127.0.0.1:8000/docs
+# Interactive docs at http://127.0.0.1:8000/docs
 
-# Precalcula la caché que sirven los GET (requiere TFM_API_KEY en .env)
+# Pre-compute the cache served by the GET endpoints (requires TFM_API_KEY in .env)
 curl -X POST http://127.0.0.1:8000/recalcular-factores -H "X-API-Key: $TFM_API_KEY"
 curl -X POST http://127.0.0.1:8000/recalcular-cartera  -H "X-API-Key: $TFM_API_KEY"
 ```
 
-Sharadar requiere suscripción de pago y el paso de `fundamentals` descarga
-~620MB, por lo que ese tramo es el más costoso de replicar de cero. El resto
-de fuentes (FRED, Yahoo Finance, Kenneth French, AQR, AAII, y SEC
-EDGAR/Finnhub en producción) son de acceso gratuito.
+Sharadar requires a paid subscription and the `fundamentals` step downloads
+~620MB, so that stage is the most expensive to replicate from scratch. All
+other sources (FRED, Yahoo Finance, Kenneth French, AQR, AAII, and SEC
+EDGAR/Finnhub in production) are free.
 
-### Opción B — Reproducir con los modelos ya entrenados (sin Sharadar)
+### Option B — Reproduce with the pre-trained models (no Sharadar)
 
-Para verificar los resultados **sin necesitar ninguna suscripción de Sharadar**,
-usando los modelos ya entrenados (`models/`) y las salidas ya calculadas
-(`data/processed/`) incluidos en el repo. No hace falta `SHARADAR_API_KEY` ni
-`FRED_API_KEY`.
+To verify the results **without any Sharadar subscription**,
+using the pre-trained models (`models/`) and the pre-computed outputs
+(`data/processed/`) included in the repo. Neither `SHARADAR_API_KEY` nor
+`FRED_API_KEY` is needed.
 
 ```bash
 bash scripts/reproducir.sh
 ```
 
-El script comprueba que están los ficheros necesarios, instala dependencias,
-carga los 4 modelos ya entrenados, levanta la API sirviendo desde caché,
-valida los endpoints `GET`, y ejecuta el notebook de recorrido regenerando 4
-de las 5 figuras principales (todas salvo la de sensibilidad a costes, que
-requiere el histórico de turnover no versionado en el repo), sin acceder a
-Sharadar en ningún paso.
+The script checks that the required files are present, installs dependencies,
+loads the 4 pre-trained models, starts the API serving from cache,
+validates the `GET` endpoints, and runs the walkthrough notebook, regenerating 4
+of the 5 main figures (all except cost sensitivity, which
+requires the turnover history not versioned in the repo), without accessing
+Sharadar at any step.
 
-## Bibliografía principal
+## Main references
 
 - "The Promises and Pitfalls of Factor Timing." _The Journal of Portfolio
   Management_, 44(4) (2018).
